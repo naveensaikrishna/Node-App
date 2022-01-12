@@ -1,16 +1,19 @@
+'use strict';
+
 let sql = require('../query-creator/index.js')
 const pool = require('./pg.js')
 
 const obj = {
     savedata : async function(req,res) {
 
-        console.log(req.body);
 
         let columns = req.body.columns;
         let rows = req.body.dataset;
         let fields ={}
         let schema = "\"write-back\""
         let table = "\"Test\""
+
+        res.send()
 
         for(let r=0; r<rows.length;r++){
             let row = rows[r]
@@ -25,7 +28,7 @@ const obj = {
 
                 let  result = await executeQuery(query)
                 
-                res.send("Data saved")
+                res.send("Data saved" + query)
             } catch (error) {
                 console.log(error)
             }
@@ -45,7 +48,7 @@ function executeQuery(query) {
                 reject(err)
                 return
             }
-            resolve("Success")
+            resolve(res)
           })      
     })
 }

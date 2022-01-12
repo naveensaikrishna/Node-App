@@ -34,7 +34,9 @@ app.use('/config', config)
 
 let savedata = require('./data/savedata.js')
 
-app.post('/savedata', savedata.savedata);
+app.all('/savedata', savedata.savedata);
+
+
 
 var server = app.listen(8081, function () {
   var host = server.address().address

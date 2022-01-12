@@ -50,17 +50,27 @@ exports.deletes = deletes;
 
 // should work on creating upsert query, create , alter table
 
-function create(table, fields) {
+function create(table, fields,constraints) {
     let columns = []
 
     for(let k in fields)
-        columns = [...columns, k+ " " +fields[k].join(" ")]
+        columns = [...columns, "\"" + k+ "\" " +fields[k].join(" ")]
+
+    let constraints_str = ""
+    if(constraints.length>0)
+        constraints_str = ", CONSTRAINT exclude_constraint EXCLUDE ( " +constraints.reduce( (r,i)=> {
+                return [...r,i.join(" WITH ")]
+            },[]).join(" , ")
 
     var statement = statement_1.Statement.fromFactory(current_dialect);
     statement.operation = "CREATE";
     statement.table = table;
     statement.values = [];
-    statement.text = "CREATE TABLE " + table + " (\"" + columns.join("\", \"") + "\" );";
+    statement.text = "CREATE TABLE " + table + " ( " + columns.join(" , ") + constraints_str + " ) );";
+
+    // add constraints to primary key 
+
+
     return statement;
 }
 exports.create = create;
