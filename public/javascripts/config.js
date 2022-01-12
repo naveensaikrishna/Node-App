@@ -6,7 +6,6 @@ function createDropdown(container, id,values,dropDownName,eventListener) {
     let options = "<option disabled> Select "+dropDownName+" </option>"
     options = values.reduce((str,d) => str+ " <option value = '"+d+"' > " +d+ "</option> ",options)
 
-    alert("<select id ='"+id+"' onchange='"+eventListener+"'> "+ options + "</select>")
     $("#"+container).html("<select id ='"+id+"' onchange='"+eventListener+"'> "+ options + "</select>")
 
 }
@@ -72,7 +71,7 @@ async function getColumnsList(){
 
         columnsList = JSON.parse(columnsList)
 
-        alert(JSON.stringify(columnsList))
+        populateColumnsSelectionDropdown(columnsList)
 
     } catch (error) {
         alert("____ err _______")
@@ -104,7 +103,7 @@ async function populatedTableauColumnNames() {
 
 }
 
-function populateColumnsSelectionDropdown(columnsList) {
+async function populateColumnsSelectionDropdown(columnsList) {
 
 
     let selectedWorksheet = $("#select-worksheet").val()
@@ -113,10 +112,17 @@ function populateColumnsSelectionDropdown(columnsList) {
     let tabColumnsList = await worksheetObj.getSummaryColumnsInfoAsync();
         tabColumnsList = tabColumnsList.map( d=> d._fieldName)
 
-    $(".ds-columns-div").html()
+    alert(JSON.stringify(columnsList))
 
-    let selectDropdown = "";
+    let selects = tabColumnsList.reduce( (str,v) => {
 
+        let options = "<option disabled> Select Data Source Column </option>"
+        options = columnsList.reduce((str,d) => str+ " <option value = '"+d.name+"' > " +d.name+ "</option> ",options)
     
-    
+        return str + " <select '> "+ options + "</select>"
+    },"")
+
+    alert(selects)
+    $(".ds-columns-div").html(selects)
+
 }
