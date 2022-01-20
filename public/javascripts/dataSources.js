@@ -4,11 +4,12 @@
 
 try {
    
+  alert(1)
   const edit = async event => {
     
       const url = `./config`;
   
-      let closePayload = await tableau.extensions.ui.displayDialogAsync(url, "OpenPayLoad-1", {width: 600, height: 450});
+      let closePayload = await tableau.extensions.ui.displayDialogAsync(url, "OpenPayLoad-1", {width: 900, height: 550});
   
       if (closePayload) {
         alert(closePayload)

@@ -1,69 +1,64 @@
 /* global tableau */
 
-let columns = {}
-function createDropdown(container, id,values,dropDownName,eventListener) {
+let tableList;
+let worksheetsList;
+let selectedTable;
+let selectedWorksheet;
+let selectedWorksheetColumns;
+let selectedTableColumns;
 
-    let options = "<option disabled> Select "+dropDownName+" </option>"
+let columns = {}
+function createDropdown(container, values) {
+
+    let options = ""
     options = values.reduce((str,d) => str+ " <option value = '"+d+"' > " +d+ "</option> ",options)
 
-    $("#"+container).html("<select id ='"+id+"' onchange='"+eventListener+"'> "+ options + "</select>")
+    $("#"+container).html(options)
 
 }
 
 $(document).ready( function() {
 
     try { 
-         tableau.extensions.initializeDialogAsync().then(async (OpenPayLoad)=> {
-        
+        tableau.extensions.initializeDialogAsync().then(async (OpenPayLoad)=> {
+    
             let dashboard = tableau.extensions.dashboardContent.dashboard.name;
-            let worksheets = tableau.extensions.dashboardContent.dashboard.worksheets.map( (d,i) => d.name);
+            
+            worksheetsList = tableau.extensions.dashboardContent.dashboard.worksheets.map( (d,i) => d.name);  
+            tableList = await getTablesList();
+            tableList = JSON.parse(tableList)
+            
+            createDropdown("selectWorksheet", worksheetsList)
+            createDropdown("selectTableName", tableList)
 
-            // Alert if zero worksheets
-            if(worksheets.length == 0) {
-                alert("Please add the worksheets")
-                return
-            }
+            if(worksheetsList && worksheetsList.length >0)
+                selectedWorksheet = worksheetsList[0]
 
-            createDropdown("select-worksheet-div","select-worksheet",worksheets,"Worksheet","onChangeWorksheet()")
+            if(tableList && tableList.length >0)
+                selectedTable = tableList[0]
 
-            if(worksheets.length > 0) {
-                onChangeWorksheet()
-            }
+            unregisterSettingsEventListener = tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
+                
+            });
 
-         });
+        });
        
     }catch (error){
         alert(error)
     }
 });
 
-function onChangeWorksheet() {
-   
-    populatedTableauColumnNames()
-    getTablesList()
-}
 
-async function getTablesList(){
+function getTablesList(){
 
-    try {
-        
-        let tablesList = await getDataFromServer("http://localhost:8081/schemas/get-all-schemas");
-
-        tablesList = JSON.parse(tablesList)
-
-        createDropdown("select-table-name-div","select-table-name",tablesList,"Table Name","getColumnsList()")
-
-        if(tablesList.length == 1)
-            getColumnsList();
-
-    } catch (error) {
-        alert("____ err _______")
-    }
+        return getDataFromServer("http://localhost:8081/schemas/get-all-schemas");
 }
 
 async function getColumnsList(){
 
-    let tableName = $("#select-table-name").val()
+    let tableName = $("#selectTableName").val()
+
+    return getDataFromServer("http://localhost:8081/schemas/get-columns?table_name="+tableName)
 
     try {
         
@@ -89,9 +84,14 @@ function getDataFromServer(url) {
         return fetch(url, requestOptions).then(response => response.text());
 }
 
-async function populatedTableauColumnNames() {
+function populateColumnMapping(){
 
-    let selectedWorksheet = $("#select-worksheet").val()
+    
+}
+
+async function populatedTableauColumnNames() {
+    
+
     let worksheetObj = tableau.extensions.dashboardContent.dashboard.worksheets.filter( (d,i) => d.name == selectedWorksheet )[0]
 
     let tabColumnsList = await worksheetObj.getSummaryColumnsInfoAsync();
@@ -112,7 +112,6 @@ async function populateColumnsSelectionDropdown(columnsList) {
     let tabColumnsList = await worksheetObj.getSummaryColumnsInfoAsync();
         tabColumnsList = tabColumnsList.map( d=> d._fieldName)
 
-    alert(JSON.stringify(columnsList))
 
     let selects = tabColumnsList.reduce( (str,v) => {
 
@@ -122,7 +121,6 @@ async function populateColumnsSelectionDropdown(columnsList) {
         return str + " <select '> "+ options + "</select>"
     },"")
 
-    alert(selects)
     $(".ds-columns-div").html(selects)
 
 }
